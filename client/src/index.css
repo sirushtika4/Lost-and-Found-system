@@ -595,6 +595,11 @@ button { cursor: pointer; }
 .page-shell { padding-bottom: 20px; }
 .page-header-row { margin-bottom: 20px; }
 .narrow-page { max-width: 880px; }
+.report-panel {
+  width: 100%;
+  min-width: 0;
+  padding: clamp(16px, 3vw, 28px);
+}
 
 .item-detail-layout {
   display: grid;
@@ -658,11 +663,25 @@ button { cursor: pointer; }
 
 .report-form {
   display: grid;
+  width: 100%;
+  min-width: 0;
   gap: 18px;
 }
 .form-grid { display: grid; gap: 18px; }
 .two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.report-form .form-grid,
+.report-form .field-group {
+  min-width: 0;
+}
+.report-form input,
+.report-form select,
+.report-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
 .image-preview-box {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
@@ -808,8 +827,13 @@ button { cursor: pointer; }
   .item-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+@media (max-width: 800px) {
+  .report-form .three-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 @media (max-width: 680px) {
   .stats-grid, .category-grid, .item-grid, .two-col, .three-col, .profile-grid, .detail-info-grid { grid-template-columns: 1fr; }
+  .report-form .three-col { grid-template-columns: minmax(0, 1fr); }
   .auth-row { flex-direction: column; align-items: flex-start; }
   .search-shell { min-height: 52px; }
   .hero-section { padding-top: 42px; }

@@ -34,7 +34,7 @@ export default function EditItemPage() {
           <h1>Edit Item</h1>
         </div>
       </div>
-      <div className="panel">
+      <div className="panel report-panel">
         <ReportItemForm mode="lost" initialValues={initialValues} onSubmit={handleSubmit} />
       </div>
     </div>

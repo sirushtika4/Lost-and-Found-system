@@ -17,7 +17,7 @@ export default function ReportLostPage() {
           <h1>Report a Lost Item</h1>
         </div>
       </div>
-      <div className="panel">
+      <div className="panel report-panel">
         <ReportItemForm mode="lost" onSubmit={handleSubmit} />
       </div>
     </div>

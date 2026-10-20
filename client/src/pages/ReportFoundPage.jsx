@@ -17,7 +17,7 @@ export default function ReportFoundPage() {
           <h1>Report a Found Item</h1>
         </div>
       </div>
-      <div className="panel">
+      <div className="panel report-panel">
         <ReportItemForm mode="found" onSubmit={handleSubmit} />
       </div>
     </div>

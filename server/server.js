@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 
 dotenv.config();
 
@@ -18,10 +19,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
+  const databaseConnected = mongoose.connection.readyState === 1;
+
+  res.status(databaseConnected ? 200 : 503).json({
+    status: databaseConnected ? 'OK' : 'DEGRADED',
     service: 'Lost and Found API',
-    database: 'not connected yet',
+    database: databaseConnected ? 'connected' : 'disconnected',
   });
 });
 
@@ -37,8 +40,19 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+async function startServer() {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/lost_found');
+    console.log('Connected to MongoDB');
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('Unable to connect to MongoDB:', error.message);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 module.exports = app;
