@@ -1,0 +1,27 @@
+{
+  "name": "lost-found-community-server",
+  "version": "1.0.0",
+  "description": "Backend API for the Lost and Found Community System",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "echo \"No backend tests yet\" && exit 0"
+  },
+  "keywords": [
+    "lost-and-found",
+    "express",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.1",
+    "express": "^4.21.2",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
