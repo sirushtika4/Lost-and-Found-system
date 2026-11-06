@@ -1,47 +1,17 @@
 # Docker guide — Campus Lost and Found
 
-## What is included
-- `client`: React + Vite frontend, built into static files and served by Nginx.
-- `server`: Express API.
-- Docker Compose starts both services together.
-- The current server health route explicitly says the database is not connected yet, so this setup does **not** add a database service or claim that persistence is implemented.
-
 ## Requirements
-Install Docker Engine and the Docker Compose plugin, then verify:
-```bash
-docker --version
-docker compose version
-```
 
-## Run from the project root
+Install Docker Engine and the Docker Compose plugin. From this project root, run:
+
 ```bash
 docker compose up --build
 ```
-Open:
-- Frontend: http://localhost:8080
-- Backend root: http://localhost:5000/
-- API health check: http://localhost:5000/api/health
 
-Stop with `Ctrl+C`, then:
-```bash
-docker compose down
-```
+Open the app at http://localhost:8080. The API is at http://localhost:5000 and its health endpoint is http://localhost:5000/api/health.
 
-Run in background:
-```bash
-docker compose up --build -d
-```
-View logs:
-```bash
-docker compose logs -f
-```
-Stop background containers:
-```bash
-docker compose down
-```
+To run in the background, use `docker compose up --build -d`. Follow logs with `docker compose logs -f`; stop and remove containers with `docker compose down`.
 
-## Notes
-- The frontend is built with `VITE_API_URL=http://localhost:5000/api`. This URL is used by the browser on the host computer.
-- Backend CORS allows `http://localhost:8080` through `CLIENT_URL`.
-- The current backend is a basic API skeleton. `/api/health` returns `database: not connected yet`; Dockerizing it does not create authentication, database persistence, or complete claim-verification functionality.
-- Do not commit real `.env` secrets to Git.
+The frontend is built with `VITE_API_URL=http://localhost:5000/api`, which is the URL the user's browser uses to reach the API. The backend allows the frontend origin `http://localhost:8080`. Nginx serves the built frontend and falls back to `index.html` for client-side routes. Compose waits for the backend health check before starting the frontend.
+
+The backend currently reports `database: not connected yet`. Docker starts the API and frontend, but does not add database persistence, authentication, or complete claim verification. Do not commit real `.env` secrets.
