@@ -7,6 +7,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY --chown=node:node server.js ./
+COPY --chown=node:node config ./config
 
 USER node
 

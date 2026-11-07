@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
+const database = require('./config/db');
 
 dotenv.config();
 
@@ -17,11 +18,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
+app.get('/api/health', async (req, res) => {
+  const connected = await database.isDatabaseConnected();
+  res.set('Cache-Control', 'no-store');
+  res.status(connected ? 200 : 503).json({
+    status: connected ? 'OK' : 'DEGRADED',
     service: 'Lost and Found API',
-    database: 'not connected yet',
+    database: connected ? 'connected' : 'disconnected',
   });
 });
 
@@ -37,8 +40,18 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+async function startServer() {
+  await database.connectDB();
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+if (require.main === module) {
+  startServer().catch(error => {
+    console.error(`Backend startup failed: ${error.message}`);
+    process.exit(1);
+  });
+}
 
 module.exports = app;

@@ -1,5 +1,9 @@
 # API integration status
 
+Historical health-only integration report. See `MONGODB-GUIDE.md` for the later
+MongoDB connection restoration in `Lost-and-Found-Recovered`; the live health
+response replaces the earlier `not connected yet` placeholder described below.
+
 This increment stays on `docker-setup-mine`. It connects the home page to the
 existing health API and improves error handling for the existing authentication
 requests. No backend routes, database, authentication implementation, Docker
