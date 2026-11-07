@@ -1,5 +1,8 @@
 # API integration status
 
+This is a historical integration-stage report. Current cookie authentication,
+API routes and tests are documented in `AUTHENTICATION.md`.
+
 Historical health-only integration report. See `MONGODB-GUIDE.md` for the later
 MongoDB connection restoration in `Lost-and-Found-Recovered`; the live health
 response replaces the earlier `not connected yet` placeholder described below.

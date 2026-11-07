@@ -35,13 +35,17 @@ function ThemeToggle({ onToggle }) {
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState('');
+  const [loggingOut, setLoggingOut] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    setMenuOpen(false);
-    navigate('/');
+  const handleLogout = async () => {
+    setLogoutError('');
+    setLoggingOut(true);
+    try { await logout(); setMenuOpen(false); navigate('/'); }
+    catch (error) { setLogoutError(error.message); }
+    finally { setLoggingOut(false); }
   };
 
   return (
@@ -89,7 +93,7 @@ export default function Navbar() {
                   Admin Dashboard
                 </NavLink>
               ) : null}
-              <button type="button" className="nav-link nav-action" onClick={handleLogout}>
+              <button type="button" className="nav-link nav-action" onClick={handleLogout} disabled={loggingOut}>
                 <LogOut size={16} />
                 Logout
               </button>
@@ -107,6 +111,7 @@ export default function Navbar() {
         </button>
       </div>
 
+      {logoutError ? <p className="container inline-error" role="alert">{logoutError}</p> : null}
       {menuOpen ? (
         <div className="mobile-nav-panel">
           <div className="container mobile-nav-stack">
@@ -143,7 +148,7 @@ export default function Navbar() {
                     Admin Dashboard
                   </NavLink>
                 ) : null}
-                <button type="button" className="nav-link nav-action" onClick={handleLogout}>
+                <button type="button" className="nav-link nav-action" onClick={handleLogout} disabled={loggingOut}>
                   <LogOut size={16} />
                   Logout
                 </button>

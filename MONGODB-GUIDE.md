@@ -1,5 +1,10 @@
 # Windows MongoDB connection from the recovered project
 
+Authentication is now implemented separately in `AUTHENTICATION.md`. The
+connection safeguards below remain current; references to the earlier absence
+of auth routes and earlier test counts describe the connection-only stage.
+The current Compose setup also requires a private JWT_SECRET; see that guide.
+
 Work from `D:\Lost-and-Found-system-main (1)\Lost-and-Found-Recovered` on
 `docker-setup-mine`. The old corrupted checkout is not used or modified.
 

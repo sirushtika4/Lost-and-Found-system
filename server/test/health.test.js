@@ -2,7 +2,9 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { once } = require('node:events');
 const database = require('../config/db');
-const app = require('../server');
+const { createApp } = require('../app');
+const { loadAuthConfig } = require('../config/auth');
+const app = createApp({ config: loadAuthConfig({ JWT_SECRET: require('node:crypto').randomBytes(32).toString('hex'), AUTH_MODE: 'local', CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173' }) });
 
 async function serve(t) {
   const server = app.listen(0, '127.0.0.1');

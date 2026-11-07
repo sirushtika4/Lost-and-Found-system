@@ -3,7 +3,9 @@ const assert = require('node:assert/strict');
 const { once } = require('node:events');
 const mongoose = require('mongoose');
 const { connectDB } = require('../config/db');
-const app = require('../server');
+const { createApp } = require('../app');
+const { loadAuthConfig } = require('../config/auth');
+const app = createApp({ config: loadAuthConfig({ JWT_SECRET: require('node:crypto').randomBytes(32).toString('hex'), AUTH_MODE: 'local', CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173' }) });
 
 test('real connection gives 200 and closing only that connection gives 503', {
   skip: process.env.RUN_MONGODB_INTEGRATION !== '1',

@@ -1,0 +1,32 @@
+# Isolated test infrastructure. Uses only the temporary instance on port 27018.
+services:
+  backend:
+    image: lost-found-backend:latest
+    environment:
+      PORT: 5000
+      NODE_ENV: test
+      AUTH_MODE: local
+      CLIENT_URL: http://localhost:18080
+      JWT_SECRET: ${AUTH_TEST_JWT_SECRET:?Provide a private auth test environment file}
+      MONGODB_URI: ${AUTH_TEST_MONGODB_URI:?Start the temporary test database first}
+      AUTH_TEST_MONGODB_URI: ${AUTH_TEST_MONGODB_URI:?Start the temporary test database first}
+    volumes:
+      - ./server/test:/app/test:ro
+    ports:
+      - "127.0.0.1:15000:5000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+  frontend:
+    image: lost-found-frontend-auth-test:local
+    build:
+      context: ./client
+      args:
+        VITE_API_URL: http://localhost:15000/api
+    ports:
+      - "127.0.0.1:18080:8080"
+    depends_on:
+      backend:
+        condition: service_healthy

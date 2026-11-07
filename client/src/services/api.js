@@ -21,17 +21,21 @@ export function getApiErrorMessage(error, fallback) {
 export const api = axios.create({
   baseURL,
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('lost_found_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (!['get', 'head', 'options'].includes((config.method || 'get').toLowerCase())) config.headers['X-CSRF-Protection'] = '1';
   return config;
+});
+
+api.interceptors.response.use(response => response, error => {
+  // Session restoration handles its own 401, so a stale check cannot invalidate a newer login.
+  if (error.response?.status === 401 && !/\/auth\/(login|register|me)$/.test(error.config?.url || '')) window.dispatchEvent(new Event('auth:expired'));
+  return Promise.reject(error);
 });
 
 export default api;
