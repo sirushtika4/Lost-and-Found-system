@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState(initialState);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -32,6 +33,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setError('');
     if (!validate()) return;
 
     setLoading(true);
@@ -39,6 +41,8 @@ export default function RegisterPage() {
       const { name, email, password } = form;
       await register({ name, email, password });
       navigate('/');
+    } catch (err) {
+      setError(err.message || 'Unable to register right now. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -76,6 +80,8 @@ export default function RegisterPage() {
             <input type="password" value={form.confirmPassword} onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })} placeholder="Repeat your password" />
             {errors.confirmPassword ? <span className="field-error">{errors.confirmPassword}</span> : null}
           </label>
+
+          {error ? <div className="inline-error" role="alert">{error}</div> : null}
 
           <Button type="submit" variant="primary" className="full-width" disabled={loading}>
             {loading ? 'Creating account...' : 'Register'}

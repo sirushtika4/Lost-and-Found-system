@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Search, ShieldCheck, Smartphone, Wallet, BriefcaseBusiness, KeyRound, FileText, BookOpen, Gem, Shirt, BadgeCheck, Boxes } from 'lucide-react';
 import { mockItems, mockStats } from '../utils/mockData';
 import ItemCard from '../components/items/ItemCard';
-import Button from '../components/common/Button';
+import BackendStatus from '../components/common/BackendStatus';
 
 const categoryIcons = {
   Electronics: Smartphone,
@@ -77,6 +77,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <BackendStatus />
 
       <section className="stats-section">
         <div className="container stats-grid">

@@ -63,7 +63,7 @@ export default function LoginPage() {
             <button type="button" className="text-link-button">Forgot password</button>
           </div>
 
-          {error ? <div className="inline-error">{error}</div> : null}
+          {error ? <div className="inline-error" role="alert">{error}</div> : null}
 
           <Button type="submit" variant="primary" className="full-width" disabled={loading}>
             {loading ? 'Signing in...' : 'Login'}

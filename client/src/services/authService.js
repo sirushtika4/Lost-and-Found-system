@@ -1,4 +1,4 @@
-import api from './api';
+import api, { getApiErrorMessage } from './api';
 
 export const authService = {
   async login(credentials) {
@@ -9,7 +9,7 @@ export const authService = {
       }
       return response.data;
     } catch (error) {
-      throw new Error(error?.response?.data?.message || 'Login failed. Check your email and password.');
+      throw new Error(getApiErrorMessage(error, 'Login failed. Check your email and password.'));
     }
   },
 
@@ -21,7 +21,7 @@ export const authService = {
       }
       return response.data;
     } catch (error) {
-      throw new Error(error?.response?.data?.message || 'Unable to register right now. Please try again.');
+      throw new Error(getApiErrorMessage(error, 'Unable to register right now. Please try again.'));
     }
   },
 
@@ -30,11 +30,8 @@ export const authService = {
       const response = await api.get('/auth/me');
       return response.data;
     } catch (error) {
-      throw new Error(error?.response?.data?.message || 'Unable to load your account.');
+      throw new Error(getApiErrorMessage(error, 'Unable to load your account.'));
     }
   },
 
-  isBackendAvailable() {
-    return true;
-  },
 };
