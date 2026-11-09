@@ -1,12 +1,18 @@
+import { useState } from 'react';
+import { itemService, itemPayload } from '../services/itemService';
 import { useNavigate } from 'react-router-dom';
 import ReportItemForm from '../components/forms/ReportItemForm';
 
 export default function ReportFoundPage() {
   const navigate = useNavigate();
 
-  const handleSubmit = (values) => {
-    console.log('Found item submitted', values);
-    navigate('/items');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const handleSubmit = async values => {
+    setSubmitting(true); setError('');
+    try { const response = await itemService.createItem(itemPayload(values)); navigate(`/items/${response.item._id}`); }
+    catch (failure) { setError(failure.message); }
+    finally { setSubmitting(false); }
   };
 
   return (
@@ -17,8 +23,9 @@ export default function ReportFoundPage() {
           <h1>Report a Found Item</h1>
         </div>
       </div>
+      {error ? <div className="inline-error" role="alert">{error} Please review and submit again.</div> : null}
       <div className="panel">
-        <ReportItemForm mode="found" onSubmit={handleSubmit} />
+        <ReportItemForm mode="found" onSubmit={handleSubmit} submitting={submitting} />
       </div>
     </div>
   );

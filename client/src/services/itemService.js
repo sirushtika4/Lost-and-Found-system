@@ -10,6 +10,11 @@ export const itemService = {
     }
   },
 
+  async getMyItems(params = {}) {
+    try { return (await api.get('/items/mine', { params })).data; }
+    catch (error) { throw new Error(error?.response?.data?.message || 'Unable to load your items. Please try again.'); }
+  },
+
   async getItemById(id) {
     try {
       const response = await api.get(`/items/${id}`);
@@ -30,7 +35,7 @@ export const itemService = {
 
   async updateItem(id, payload) {
     try {
-      const response = await api.put(`/items/${id}`, payload);
+      const response = await api.patch(`/items/${id}`, payload);
       return response.data;
     } catch (error) {
       throw new Error(error?.response?.data?.message || 'Unable to update item.');
@@ -39,10 +44,15 @@ export const itemService = {
 
   async deleteItem(id) {
     try {
-      await api.delete(`/items/${id}`);
+      // A JSON body keeps Axios from dropping Content-Type, required by our CSRF policy.
+      await api.delete(`/items/${id}`, { data: {} });
       return true;
     } catch (error) {
       throw new Error(error?.response?.data?.message || 'Unable to delete item.');
     }
   },
 };
+
+export function itemPayload(form) {
+  return Object.fromEntries(['title', 'category', 'description', 'color', 'brand', 'location', 'image', 'type'].map(key => [key, form[key] || '']).concat([['dateLostOrFound', form.date]]));
+}

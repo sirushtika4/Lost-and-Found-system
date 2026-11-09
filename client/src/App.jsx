@@ -33,8 +33,8 @@ export default function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/items" element={<BrowseItemsPage />} />
               <Route path="/items/:id" element={<ItemDetailPage />} />
-              <Route path="/report/lost" element={<ReportLostPage />} />
-              <Route path="/report/found" element={<ReportFoundPage />} />
+              <Route path="/report/lost" element={<ProtectedRoute><ReportLostPage /></ProtectedRoute>} />
+              <Route path="/report/found" element={<ProtectedRoute><ReportFoundPage /></ProtectedRoute>} />
               <Route path="/items/:id/edit" element={<ProtectedRoute><EditItemPage /></ProtectedRoute>} />
               <Route path="/my-items" element={<ProtectedRoute><MyItemsPage /></ProtectedRoute>} />
               <Route path="/my-claims" element={<ProtectedRoute><MyClaimsPage /></ProtectedRoute>} />

@@ -1,6 +1,8 @@
+import { useItems } from '../services/useItems';
+import ItemRequestState from '../components/items/ItemRequestState';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Search, ShieldCheck, Smartphone, Wallet, BriefcaseBusiness, KeyRound, FileText, BookOpen, Gem, Shirt, BadgeCheck, Boxes } from 'lucide-react';
-import { mockItems, mockStats } from '../utils/mockData';
+import { mockStats } from '../utils/mockData';
 import ItemCard from '../components/items/ItemCard';
 import BackendStatus from '../components/common/BackendStatus';
 
@@ -38,6 +40,7 @@ const statsConfig = [
 ];
 
 export default function HomePage() {
+  const { items, loading, error, retry } = useItems({ limit: 4 });
   return (
     <>
       <section className="hero-section">
@@ -58,6 +61,7 @@ export default function HomePage() {
           </div>
 
           <div className="hero-panel">
+            <span className="eyebrow">Illustrative preview</span>
             <div className="mini-card card-spotlight">
               <div className="panel-topline">
                 <span className="status-badge status-lost">Lost</span>
@@ -80,7 +84,8 @@ export default function HomePage() {
 
       <BackendStatus />
 
-      <section className="stats-section">
+      <section className="stats-section" aria-label="Sample statistics">
+        <p className="container">Preview statistics: these are sample figures.</p>
         <div className="container stats-grid">
           {statsConfig.map((stat) => (
             <div key={stat.label} className="stat-card">
@@ -127,10 +132,12 @@ export default function HomePage() {
         </div>
 
         <div className="item-grid home-grid">
-          {mockItems.slice(0, 4).map((item) => (
+          {!loading && !error ? items.map((item) => (
             <ItemCard key={item._id} item={item} />
-          ))}
+          )) : null}
         </div>
+        <ItemRequestState loading={loading} error={error} retry={retry} />
+        {!loading && !error && !items.length ? <p>No items have been reported yet.</p> : null}
       </section>
     </>
   );

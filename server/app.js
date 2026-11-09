@@ -7,7 +7,9 @@ const database = require('./config/db');
 const { loadAuthConfig } = require('./config/auth');
 const { createUserModel } = require('./models/User');
 const { createAuthRouter } = require('./routes/auth');
-function createApp({ config = loadAuthConfig(), User = createUserModel(), authLimits } = {}) {
+const { createItemModel } = require('./models/Item');
+const { createItemRouter } = require('./routes/items');
+function createApp({ config = loadAuthConfig(), User = createUserModel(), Item = createItemModel(), authLimits } = {}) {
   const app = express();
   app.disable('x-powered-by');
   if (config.proxyIp) app.set('trust proxy', config.proxyIp);
@@ -28,6 +30,7 @@ function createApp({ config = loadAuthConfig(), User = createUserModel(), authLi
   });
   app.get('/', (req, res) => res.send('Lost & Found Community API is running.'));
   app.use('/api/auth', createAuthRouter({ config, User, limits: authLimits }));
+  app.use('/api/items', createItemRouter({ config, User, Item }));
   app.use((req, res) => res.status(404).json({ message: 'API route not found.' }));
   app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);

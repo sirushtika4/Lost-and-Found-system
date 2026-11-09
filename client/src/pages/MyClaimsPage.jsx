@@ -12,6 +12,7 @@ export default function MyClaimsPage() {
 
   return (
     <div className="container section-block page-shell">
+      <p className="muted">Preview only: these are sample claims. Claim submission and tracking are not implemented.</p>
       <div className="page-header-row">
         <div>
           <span className="eyebrow">Claim tracking</span>
