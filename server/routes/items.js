@@ -62,13 +62,18 @@ function createItemRouter({ config, User, Item }) {
     // Recheck ownership atomically with the write; never accept it in the request body.
     const filter = { _id: item._id, ...(req.user.role === 'admin' ? {} : { userId: req.user._id }) };
     if (remove) {
-      const result = await Item.deleteOne(filter);
-      return result.deletedCount ? res.status(204).end() : res.status(404).json({ message: 'Item not found.' });
+      const result = await Item.deleteOne({ ...filter, 'claims.0': { $exists: false } });
+      return result.deletedCount ? res.status(204).end() : res.status(409).json({ message: 'Items with claim history cannot be deleted. Refresh the item.' });
     }
     const input = update.safeParse(req.body);
     if (!input.success) return res.status(400).json({ message: 'Invalid item update. Ownership and server fields cannot be changed.' });
+    if (input.data.type && input.data.type !== item.type) filter['claims.0'] = { $exists: false };
+    if (input.data.status) {
+      filter.approvedClaimId = { $exists: false };
+      filter.claims = { $not: { $elemMatch: { status: 'pending' } } };
+    }
     const updated = await Item.findOneAndUpdate(filter, { $set: input.data }, { returnDocument: 'after', runValidators: true });
-    return updated ? res.json({ success: true, item: safeItem(updated) }) : res.status(404).json({ message: 'Item not found.' });
+    return updated ? res.json({ success: true, item: safeItem(updated) }) : res.status(409).json({ message: 'Claim history or pending reviews prevent this change. Refresh and review claims first.' });
   });
   router.patch('/:id', authenticated, modify(false));
   router.delete('/:id', authenticated, modify(true));

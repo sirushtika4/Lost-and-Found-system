@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { claimSchema } = require('./Claim');
 const categories = ['Electronics', 'Wallets', 'Bags', 'Keys', 'Documents', 'Books', 'Jewellery', 'Clothing', 'ID Cards', 'Other'];
 const schema = new mongoose.Schema({
   title: { type: String, required: true, maxlength: 150 },
@@ -12,6 +13,8 @@ const schema = new mongoose.Schema({
   image: { type: String, default: '', maxlength: 2000 },
   status: { type: String, enum: ['open', 'resolved'], default: 'open' },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, immutable: true },
+  claims: { type: [claimSchema], default: undefined, select: false },
+  approvedClaimId: { type: mongoose.Schema.Types.ObjectId, select: false },
 }, { collection: 'items', timestamps: true, autoCreate: false, autoIndex: false });
 function createItemModel(connection = mongoose) {
   return connection.models.Item || connection.model('Item', schema, 'items');

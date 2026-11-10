@@ -1,5 +1,7 @@
 # Item management
 
+Claims are now implemented; see [CLAIMS-GUIDE.md](CLAIMS-GUIDE.md) for submission/review APIs and the additional item history, deletion and status restrictions. Claims-related limitations below describe the original item-only stage.
+
 Implemented on `docker-setup-mine` starting from `4c8327c`. Remote branches were fetched and inspected without checkout or merging. None contained item models/routes; `feature/backend-auth` contains authentication reference work only.
 
 ## Data and API contract

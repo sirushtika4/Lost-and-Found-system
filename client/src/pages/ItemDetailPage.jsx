@@ -1,3 +1,5 @@
+import ClaimForm from '../components/items/ClaimForm';
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MapPin, CalendarDays, ShieldCheck } from 'lucide-react';
@@ -12,6 +14,7 @@ export default function ItemDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { item, loading, error, retry } = useItem(id);
+  const [claimOpen, setClaimOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState('');
   const canModify = item && user && (user._id === item.userId || user.role === 'admin');
@@ -28,6 +31,7 @@ export default function ItemDetailPage() {
 
   return (
     <div className="container section-block page-shell">
+      {claimOpen ? <ClaimForm key={id} itemId={id} onClose={() => setClaimOpen(false)} /> : null}
       <div className="item-detail-layout">
         <div className="item-detail-image-wrap">
           {item.image ? <img src={item.image} alt={item.title} className="item-detail-image" referrerPolicy="no-referrer" /> : <p>No image provided</p>}
@@ -61,7 +65,10 @@ export default function ItemDetailPage() {
 
           {actionError ? <div className="inline-error" role="alert">{actionError}</div> : null}
           <div className="detail-actions">
-            <Button type="button" variant="primary" disabled title="Claims are not available yet">Claim This Item</Button>
+            {item.type === 'found' && item.status === 'open' && user?._id !== item.userId ? (user ?
+              <Button type="button" variant="primary" onClick={() => setClaimOpen(true)}>Claim This Item</Button> :
+              <Link className="btn btn-primary btn-md" to="/login">Sign in to claim</Link>) : null}
+            {user?._id === item.userId ? <Link to="/my-claims" className="btn btn-secondary btn-md">Review Claims</Link> : null}
             <Button type="button" variant="secondary" disabled title="Contact sharing is not available yet">Contact Reporter</Button>
             {canModify ? <>
               <Button type="button" variant="ghost" disabled={busy} onClick={() => navigate(`/items/${item._id}/edit`)}>Edit</Button>
@@ -69,7 +76,7 @@ export default function ItemDetailPage() {
               <Button type="button" variant="secondary" disabled={busy} onClick={() => act(false)}>{item.status === 'resolved' ? 'Reopen' : 'Mark as Resolved'}</Button>
             </> : null}
           </div>
-          <p>Claims, reporter contact and automatic matching are not available yet.</p>
+          <p>Reporter contact and automatic matching are not available yet. Items with claim history cannot be deleted or changed to lost reports; pending reviews prevent manual resolution.</p>
         </div>
       </div>
 
