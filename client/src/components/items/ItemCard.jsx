@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, CalendarDays, Tag, ArrowRight } from 'lucide-react';
+import { MapPin, CalendarDays, ArrowRight } from 'lucide-react';
 
 export default function ItemCard({ item }) {
   if (!item) return null;
@@ -7,7 +7,7 @@ export default function ItemCard({ item }) {
   return (
     <article className="item-card">
       <div className="item-card-image-wrap">
-        <img src={item.image} alt={item.title} className="item-card-image" />
+        {item.image ? <img src={item.image} alt={item.title} className="item-card-image" referrerPolicy="no-referrer" /> : <div className="item-card-image" role="img" aria-label="No image provided">No image provided</div>}
         <span className={`status-badge status-${item.type}`}>{item.type === 'lost' ? 'Lost' : 'Found'}</span>
       </div>
 

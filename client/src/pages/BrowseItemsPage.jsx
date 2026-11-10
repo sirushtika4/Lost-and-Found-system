@@ -1,57 +1,34 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Search, RotateCcw } from 'lucide-react';
-import { mockItems } from '../utils/mockData';
+import { useSearchParams } from 'react-router-dom';
+import { useItems } from '../services/useItems';
+import ItemPagination from '../components/items/ItemPagination';
 import ItemCard from '../components/items/ItemCard';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import ItemRequestState from '../components/items/ItemRequestState';
 import EmptyState from '../components/common/EmptyState';
 
 const categories = ['All', 'Electronics', 'Wallets', 'Bags', 'Keys', 'Documents', 'Books', 'Jewellery', 'Clothing', 'ID Cards', 'Other'];
 
 export default function BrowseItemsPage() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [searchParams] = useSearchParams();
+  const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState({
     type: 'All',
-    category: 'All',
+    category: categories.includes(searchParams.get('category')) ? searchParams.get('category') : 'All',
     location: '',
     status: 'All',
     sort: 'newest',
   });
 
-  const filteredItems = useMemo(() => {
-    let results = [...mockItems];
-
-    if (query) {
-      results = results.filter((item) => `${item.title} ${item.description} ${item.location}`.toLowerCase().includes(query.toLowerCase()));
-    }
-
-    if (filters.type !== 'All') {
-      results = results.filter((item) => item.type === filters.type.toLowerCase());
-    }
-
-    if (filters.category !== 'All') {
-      results = results.filter((item) => item.category === filters.category);
-    }
-
-    if (filters.location) {
-      results = results.filter((item) => item.location.toLowerCase().includes(filters.location.toLowerCase()));
-    }
-
-    if (filters.status !== 'All') {
-      results = results.filter((item) => item.status === filters.status.toLowerCase());
-    }
-
-    results.sort((a, b) => {
-      const first = new Date(a.createdAt).getTime();
-      const second = new Date(b.createdAt).getTime();
-      return filters.sort === 'oldest' ? first - second : second - first;
-    });
-
-    return results;
-  }, [query, filters]);
+  const params = { page, search: query, sort: filters.sort, location: filters.location };
+  if (filters.type !== 'All') params.type = filters.type.toLowerCase();
+  if (filters.category !== 'All') params.category = filters.category;
+  if (filters.status !== 'All') params.status = filters.status.toLowerCase();
+  const { items: filteredItems, pagination, loading, error, retry } = useItems(params);
 
   const resetFilters = () => {
+    setPage(1);
     setQuery('');
     setFilters({ type: 'All', category: 'All', location: '', status: 'All', sort: 'newest' });
   };
@@ -71,16 +48,17 @@ export default function BrowseItemsPage() {
           <input
             type="text"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => { setPage(1); setQuery(event.target.value); }}
             placeholder="Search items, locations, or descriptions"
             aria-label="Search for items"
+            maxLength={100}
           />
         </div>
 
         <div className="filter-grid">
           <label>
             <span>Type</span>
-            <select value={filters.type} onChange={(event) => setFilters((current) => ({ ...current, type: event.target.value }))}>
+            <select aria-label="Type" value={filters.type} onChange={(event) => { setPage(1); setFilters((current) => ({ ...current, type: event.target.value })); }}>
               <option>All</option>
               <option>Lost</option>
               <option>Found</option>
@@ -89,7 +67,7 @@ export default function BrowseItemsPage() {
 
           <label>
             <span>Category</span>
-            <select value={filters.category} onChange={(event) => setFilters((current) => ({ ...current, category: event.target.value }))}>
+            <select aria-label="Category" value={filters.category} onChange={(event) => { setPage(1); setFilters((current) => ({ ...current, category: event.target.value })); }}>
               {categories.map((category) => (
                 <option key={category} value={category}>{category}</option>
               ))}
@@ -98,22 +76,21 @@ export default function BrowseItemsPage() {
 
           <label>
             <span>Location</span>
-            <input value={filters.location} onChange={(event) => setFilters((current) => ({ ...current, location: event.target.value }))} placeholder="Library" />
+            <input maxLength={100} value={filters.location} onChange={(event) => { setPage(1); setFilters((current) => ({ ...current, location: event.target.value })); }} placeholder="Library" />
           </label>
 
           <label>
             <span>Status</span>
-            <select value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}>
+            <select aria-label="Status" value={filters.status} onChange={(event) => { setPage(1); setFilters((current) => ({ ...current, status: event.target.value })); }}>
               <option>All</option>
               <option>Open</option>
-              <option>Claimed</option>
               <option>Resolved</option>
             </select>
           </label>
 
           <label>
             <span>Sort</span>
-            <select value={filters.sort} onChange={(event) => setFilters((current) => ({ ...current, sort: event.target.value }))}>
+            <select aria-label="Sort" value={filters.sort} onChange={(event) => { setPage(1); setFilters((current) => ({ ...current, sort: event.target.value })); }}>
               <option value="newest">Newest</option>
               <option value="oldest">Oldest</option>
             </select>
@@ -126,13 +103,13 @@ export default function BrowseItemsPage() {
       </div>
 
       <div className="results-topbar">
-        <p>{filteredItems.length} items found</p>
+        <p>{pagination?.total ?? 0} items found</p>
       </div>
 
       {loading ? (
-        <LoadingSpinner label="Loading items..." />
+        <ItemRequestState loading />
       ) : error ? (
-        <div className="inline-error">{error}</div>
+        <ItemRequestState error={error} retry={retry} />
       ) : filteredItems.length ? (
         <div className="item-grid browse-grid">
           {filteredItems.map((item) => (
@@ -147,6 +124,7 @@ export default function BrowseItemsPage() {
           onAction={resetFilters}
         />
       )}
+      {!loading && !error ? <ItemPagination pagination={pagination} onPage={setPage} /> : null}
     </div>
   );
 }

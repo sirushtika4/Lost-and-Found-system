@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Button from '../common/Button';
+import { useNavigate } from 'react-router-dom';
 
 const emptyForm = {
   title: '',
@@ -13,24 +14,14 @@ const emptyForm = {
 };
 
 export default function ReportItemForm({ mode = 'lost', initialValues = emptyForm, onSubmit, submitting = false }) {
+  const navigate = useNavigate();
   const [form, setForm] = useState(initialValues || emptyForm);
   const [errors, setErrors] = useState({});
-
-  useEffect(() => {
-    setForm(initialValues || emptyForm);
-  }, [initialValues]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
     setErrors((current) => ({ ...current, [name]: '' }));
-  };
-
-  const handleImageChange = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const preview = URL.createObjectURL(file);
-    setForm((current) => ({ ...current, image: preview }));
   };
 
   const validate = () => {
@@ -41,6 +32,11 @@ export default function ReportItemForm({ mode = 'lost', initialValues = emptyFor
         nextErrors[field] = 'This field is required.';
       }
     });
+    if (form.image) {
+      try { const url = new URL(form.image); if (url.protocol !== 'https:' || url.username || url.password) nextErrors.image = 'Use an HTTPS image URL without credentials.'; }
+      catch { nextErrors.image = 'Enter a valid HTTPS image URL.'; }
+    }
+    if (form.date > new Date().toISOString().slice(0, 10)) nextErrors.date = 'The date cannot be in the future.';
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
@@ -61,7 +57,7 @@ export default function ReportItemForm({ mode = 'lost', initialValues = emptyFor
       <div className="form-grid two-col">
         <div className="field-group">
           <label htmlFor="title">Item title</label>
-          <input id="title" name="title" value={form.title} onChange={handleChange} placeholder="Black Samsung Phone" />
+          <input id="title" name="title" maxLength={150} value={form.title} onChange={handleChange} placeholder="Black Samsung Phone" />
           {errors.title ? <span className="field-error">{errors.title}</span> : null}
         </div>
 
@@ -78,19 +74,19 @@ export default function ReportItemForm({ mode = 'lost', initialValues = emptyFor
 
       <div className="field-group">
         <label htmlFor="description">Description</label>
-        <textarea id="description" name="description" value={form.description} onChange={handleChange} rows={5} placeholder="Describe the item, where it was last seen, and any distinguishing details." />
+        <textarea id="description" name="description" maxLength={4000} value={form.description} onChange={handleChange} rows={5} placeholder="Describe the item, where it was last seen, and any distinguishing details." />
         {errors.description ? <span className="field-error">{errors.description}</span> : null}
       </div>
 
       <div className="form-grid three-col">
         <div className="field-group">
           <label htmlFor="color">Color</label>
-          <input id="color" name="color" value={form.color} onChange={handleChange} placeholder="Black" />
+          <input id="color" name="color" maxLength={80} value={form.color} onChange={handleChange} placeholder="Black" />
         </div>
 
         <div className="field-group">
           <label htmlFor="brand">Brand</label>
-          <input id="brand" name="brand" value={form.brand} onChange={handleChange} placeholder="Samsung" />
+          <input id="brand" name="brand" maxLength={100} value={form.brand} onChange={handleChange} placeholder="Samsung" />
         </div>
 
         <div className="field-group">
@@ -103,13 +99,15 @@ export default function ReportItemForm({ mode = 'lost', initialValues = emptyFor
       <div className="form-grid two-col">
         <div className="field-group">
           <label htmlFor="location">Location</label>
-          <input id="location" name="location" value={form.location} onChange={handleChange} placeholder="Engineering Library" />
+          <input id="location" name="location" maxLength={200} value={form.location} onChange={handleChange} placeholder="Engineering Library" />
           {errors.location ? <span className="field-error">{errors.location}</span> : null}
         </div>
 
         <div className="field-group">
           <label htmlFor="image-upload">Image</label>
-          <input id="image-upload" type="file" accept="image/*" onChange={handleImageChange} />
+          <input id="image-upload" name="image" type="url" maxLength={2000} value={form.image} onChange={handleChange} placeholder="https://example.com/item.jpg" />
+          <small>Optional HTTPS image URL. File uploads are not available yet.</small>
+          {errors.image ? <span className="field-error">{errors.image}</span> : null}
         </div>
       </div>
 
@@ -123,7 +121,7 @@ export default function ReportItemForm({ mode = 'lost', initialValues = emptyFor
         <Button type="submit" variant="primary" disabled={submitting}>
           {submitting ? 'Submitting...' : mode === 'lost' ? 'Submit Lost Report' : 'Submit Found Report'}
         </Button>
-        <Button type="button" variant="secondary">Cancel</Button>
+        <Button type="button" variant="secondary" disabled={submitting} onClick={() => navigate(-1)}>Cancel</Button>
       </div>
     </form>
   );

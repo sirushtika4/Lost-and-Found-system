@@ -11,6 +11,7 @@ const stats = [
 export default function AdminDashboardPage() {
   return (
     <div className="container section-block page-shell">
+      <p className="muted">Preview only: items, users and counts below are sample data. Administrator management is not implemented.</p>
       <div className="page-header-row">
         <div>
           <span className="eyebrow">Administration</span>

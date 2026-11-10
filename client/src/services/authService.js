@@ -1,40 +1,17 @@
-import api from './api';
+import api, { getApiErrorMessage } from './api';
 
+async function request(promise, fallback) {
+  try { return (await promise).data; }
+  catch (error) {
+    const failure = new Error(getApiErrorMessage(error, fallback));
+    failure.status = error.response?.status;
+    throw failure;
+  }
+}
 export const authService = {
-  async login(credentials) {
-    try {
-      const response = await api.post('/auth/login', credentials);
-      if (response.data.token) {
-        localStorage.setItem('lost_found_token', response.data.token);
-      }
-      return response.data;
-    } catch (error) {
-      throw new Error(error?.response?.data?.message || 'Login failed. Check your email and password.');
-    }
-  },
-
-  async register(payload) {
-    try {
-      const response = await api.post('/auth/register', payload);
-      if (response.data.token) {
-        localStorage.setItem('lost_found_token', response.data.token);
-      }
-      return response.data;
-    } catch (error) {
-      throw new Error(error?.response?.data?.message || 'Unable to register right now. Please try again.');
-    }
-  },
-
-  async me() {
-    try {
-      const response = await api.get('/auth/me');
-      return response.data;
-    } catch (error) {
-      throw new Error(error?.response?.data?.message || 'Unable to load your account.');
-    }
-  },
-
-  isBackendAvailable() {
-    return true;
-  },
+  login: credentials => request(api.post('/auth/login', credentials), 'Unable to sign in.'),
+  register: payload => request(api.post('/auth/register', payload), 'Unable to register.'),
+  me: ({ signal } = {}) => request(api.get('/auth/me', { signal }), 'Unable to check your session.'),
+  updateProfile: payload => request(api.patch('/auth/me', payload), 'Unable to save your profile. Please try again.'),
+  logout: () => request(api.post('/auth/logout', {}), 'Unable to sign out. Please try again.'),
 };

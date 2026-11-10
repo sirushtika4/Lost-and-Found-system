@@ -1,44 +1,20 @@
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const dotenv = require('dotenv');
+require('dotenv').config();
+const database = require('./config/db');
+const { loadAuthConfig } = require('./config/auth');
+const { createApp } = require('./app');
 
-dotenv.config();
+async function startServer() {
+  const config = loadAuthConfig();
+  await database.connectDB();
+  const app = createApp({ config });
+  return app.listen(process.env.PORT || 5000, () => console.log(`Server running on port ${process.env.PORT || 5000}`));
+}
 
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true,
-}));
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
-
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    service: 'Lost and Found API',
-    database: 'not connected yet',
+if (require.main === module) {
+  startServer().catch(error => {
+    console.error(`Backend startup failed: ${error.message}`);
+    process.exit(1);
   });
-});
+}
 
-app.get('/', (req, res) => {
-  res.send('Lost & Found Community API is running.');
-});
-
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Something went wrong on the server',
-  });
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
-
-module.exports = app;
+module.exports = { createApp, startServer };

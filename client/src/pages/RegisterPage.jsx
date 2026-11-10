@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState(initialState);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -23,7 +24,8 @@ export default function RegisterPage() {
     if (!form.name.trim()) nextErrors.name = 'Full name is required.';
     if (!form.email.trim()) nextErrors.email = 'Email is required.';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) nextErrors.email = 'Please enter a valid email.';
-    if (form.password.length < 6) nextErrors.password = 'Password must be at least 6 characters.';
+    if (Array.from(form.password).length < 15) nextErrors.password = 'Password must be at least 15 characters.';
+    else if (new TextEncoder().encode(form.password).length > 72) nextErrors.password = 'Password must be at most 72 UTF-8 bytes.';
     if (form.confirmPassword !== form.password) nextErrors.confirmPassword = 'Passwords do not match.';
 
     setErrors(nextErrors);
@@ -32,6 +34,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setError('');
     if (!validate()) return;
 
     setLoading(true);
@@ -39,6 +42,8 @@ export default function RegisterPage() {
       const { name, email, password } = form;
       await register({ name, email, password });
       navigate('/');
+    } catch (err) {
+      setError(err.message || 'Unable to register right now. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -67,7 +72,7 @@ export default function RegisterPage() {
 
           <label className="field-group">
             <span>Password</span>
-            <input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder="At least 6 characters" />
+            <input type="password" autoComplete="new-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder="At least 15 characters" />
             {errors.password ? <span className="field-error">{errors.password}</span> : null}
           </label>
 
@@ -76,6 +81,8 @@ export default function RegisterPage() {
             <input type="password" value={form.confirmPassword} onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })} placeholder="Repeat your password" />
             {errors.confirmPassword ? <span className="field-error">{errors.confirmPassword}</span> : null}
           </label>
+
+          {error ? <div className="inline-error" role="alert">{error}</div> : null}
 
           <Button type="submit" variant="primary" className="full-width" disabled={loading}>
             {loading ? 'Creating account...' : 'Register'}

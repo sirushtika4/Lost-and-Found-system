@@ -7,7 +7,6 @@ import Button from '../components/common/Button';
 export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -57,13 +56,14 @@ export default function LoginPage() {
 
           <div className="auth-row">
             <label className="check-row">
-              <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} />
-              <span>Remember me</span>
+              <input type="checkbox" checked={false} disabled />
+              <span>Remember me (unavailable)</span>
             </label>
-            <button type="button" className="text-link-button">Forgot password</button>
+            <button type="button" className="text-link-button" disabled>Forgot password (unavailable)</button>
           </div>
 
-          {error ? <div className="inline-error">{error}</div> : null}
+          <p className="muted">Sessions expire after 15 minutes. Sign in again to continue.</p>
+          {error ? <div className="inline-error" role="alert">{error}</div> : null}
 
           <Button type="submit" variant="primary" className="full-width" disabled={loading}>
             {loading ? 'Signing in...' : 'Login'}
