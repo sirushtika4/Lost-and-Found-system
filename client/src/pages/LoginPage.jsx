@@ -60,7 +60,7 @@ export default function LoginPage() {
               <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} />
               <span>Remember me</span>
             </label>
-            <button type="button" className="text-link-button">Forgot password</button>
+            <Link to="/forgot-password" className="forgot-password-link">Forgot password?</Link>
           </div>
 
           {error ? <div className="inline-error">{error}</div> : null}

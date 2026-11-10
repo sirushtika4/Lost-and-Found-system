@@ -25,6 +25,24 @@ export const authService = {
     }
   },
 
+  async forgotPassword(email) {
+    try {
+      const response = await api.post('/auth/forgot-password', { email });
+      return response.data;
+    } catch (error) {
+      throw new Error(error?.response?.data?.message || 'Unable to send password reset instructions. Please try again.');
+    }
+  },
+
+  async resetPassword(payload) {
+    try {
+      const response = await api.post('/auth/reset-password', payload);
+      return response.data;
+    } catch (error) {
+      throw new Error(error?.response?.data?.message || 'Unable to reset your password. Please request a new link.');
+    }
+  },
+
   async me() {
     try {
       const response = await api.get('/auth/me');
