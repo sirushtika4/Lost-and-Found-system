@@ -10,6 +10,7 @@ const registration = z.object({ name: z.string().trim().min(1).max(100), email,
   password: z.string().refine(value => Array.from(value).length >= 15 && Buffer.byteLength(value, 'utf8') <= 72),
   phoneNumber: z.string().max(30).optional() }).strict();
 const credentials = z.object({ email, password: z.string().min(1).max(4096) }).strict();
+const profileUpdate = z.object({ name: z.string().trim().min(1).max(100).optional(), phoneNumber: z.string().trim().max(30).optional() }).strict().refine(value => Object.keys(value).length > 0);
 const dummyHash = bcrypt.hash('Dummy credential used only for unknown-account comparisons', 12);
 const wrap = handler => (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 function createAuthRouter({ config, User, limits = {} }) {
@@ -40,6 +41,14 @@ function createAuthRouter({ config, User, limits = {} }) {
     return res.json({ success: true, user: safeUser(user) });
   }));
   router.get('/me', protect(config, User), (req, res) => res.json({ success: true, user: safeUser(req.user) }));
+  router.patch('/me', protect(config, User), wrap(async (req, res) => {
+    const input = profileUpdate.safeParse(req.body);
+    if (!input.success) return res.status(400).json({ message: 'Update only your name (1–100 characters) or phone number (up to 30 characters).' });
+    // Never save the loaded user document: preserve legacy fields and bcrypt hashes.
+    const user = await User.findOneAndUpdate({ _id: req.user._id }, { $set: input.data }, { returnDocument: 'after', runValidators: true });
+    if (!user) { clearSession(res, config); return res.status(401).json({ message: 'Session expired or invalid. Please sign in again.' }); }
+    return res.json({ success: true, user: safeUser(user) });
+  }));
   router.post('/logout', (req, res) => { clearSession(res, config); return res.status(204).end(); });
   return router;
 }

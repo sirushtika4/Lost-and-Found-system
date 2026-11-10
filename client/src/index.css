@@ -652,6 +652,13 @@ button { cursor: pointer; }
   padding: 28px;
   border: 1px solid var(--border);
 }
+.claim-dialog {
+  width: 100%; height: 100%; max-width: none; max-height: none;
+  margin: 0; border: 0; color: var(--text); overflow-y: auto;
+}
+.claim-dialog:not([open]) { display: none; }
+.claim-dialog::backdrop { background: transparent; }
+.claim-dialog .modal-card { max-height: calc(100dvh - 40px); overflow-y: auto; }
 .close-button {
   width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--surface); font-size: 1.5rem;
 }

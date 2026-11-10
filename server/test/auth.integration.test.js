@@ -128,6 +128,32 @@ test('authentication APIs against an isolated temporary MongoDB only', { skip: p
     assert.equal((await fetch(`${base}/me`)).status, 401);
     assert.equal((await fetch(`${base}/me`, { headers: { Cookie: cookie } })).status, 200);
   });
+  await t.test('profile PATCH updates only the caller name/phone and preserves hashes, identity and other users', async () => {
+    const collection = connection.db.collection('users');
+    const before = await collection.findOne({ _id: new mongoose.Types.ObjectId(userId) });
+    const otherUsers = await collection.find({ _id: { $ne: before._id } }).sort({ _id: 1 }).toArray();
+    const patch = (body, extra = {}) => fetch(`${base}/me`, { method: 'PATCH', headers: { ...headers, Cookie: cookie, ...extra }, body: JSON.stringify(body) });
+    const response = await patch({ name: ' Updated Member ', phoneNumber: ' 123456789 ' });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('set-cookie'), null);
+    const result = (await response.json()).user;
+    assert.equal(result.name, 'Updated Member'); assert.equal(result.phoneNumber, '123456789'); assert.equal(result.password, undefined);
+    const after = await collection.findOne({ _id: before._id });
+    for (const key of Object.keys(before).filter(key => !['name', 'phoneNumber', 'updatedAt'].includes(key))) assert.deepEqual(after[key], before[key]);
+    assert.deepEqual(await collection.find({ _id: { $ne: before._id } }).sort({ _id: 1 }).toArray(), otherUsers);
+    assert.equal((await (await fetch(`${base}/me`, { headers: { Cookie: cookie } })).json()).user.name, 'Updated Member');
+    assert.equal((await patch({ phoneNumber: '' })).status, 200);
+    assert.equal((await patch({ name: 'Final Member' })).status, 200);
+    assert.equal((await collection.findOne({ _id: before._id })).phoneNumber, '');
+    const saved = await collection.findOne({ _id: before._id });
+    for (const body of [{}, { name: '' }, { name: 'x'.repeat(101) }, { phoneNumber: null }, { phoneNumber: 'x'.repeat(31) }, { name: { $ne: '' } },
+      { role: 'admin' }, { password: 'new secret' }, { email: 'new@example.invalid' }, { _id: String(otherUsers[0]._id) }, { userId: String(otherUsers[0]._id) }, { profileImage: 'https://example.invalid/image.jpg' }, { updatedAt: '2000-01-01' }]) assert.equal((await patch(body)).status, 400);
+    assert.deepEqual(await collection.findOne({ _id: before._id }), saved);
+    for (const extra of [{ Cookie: '' }, { Cookie: 'lf_session=invalid' }]) assert.equal((await patch({ name: 'Unauthorized' }, extra)).status, 401);
+    for (const extra of [{ Origin: '' }, { Origin: 'http://evil.invalid' }, { 'X-CSRF-Protection': '' }, { 'Content-Type': 'text/plain' }]) assert.equal((await patch({ name: 'Forged' }, extra)).status, 403);
+    assert.deepEqual(await collection.findOne({ _id: before._id }), saved);
+    assert.deepEqual(await collection.find({ _id: { $ne: before._id } }).sort({ _id: 1 }).toArray(), otherUsers);
+  });
   await t.test('login and registration rate limits return 429', async () => {
     const limited = createApp({ config, User, authLimits: { login: 2, register: 1 } }).listen(0, '127.0.0.1');
     await once(limited, 'listening');

@@ -6,6 +6,16 @@ connection safeguards and the live health endpoint remain in place.
 
 ## API contract
 
+Profile updates are now supported through `PATCH /api/auth/me`: an authenticated,
+CSRF-protected JSON request containing only `name` (trimmed, 1–100 characters)
+and/or `phoneNumber` (trimmed, up to 30 characters, empty string clears it).
+At least one field is required. Email, IDs, role, password/hash, timestamps and
+profile image are rejected. The server atomically updates only the session user's
+permitted fields and returns `{ success: true, user }` using the existing safe-user
+allowlist. Omitted fields remain unchanged; the endpoint neither rehashes passwords
+nor changes the JWT/cookie. The profile form provides loading, success and retryable
+error states. See [INTEGRATION-FIXES.md](INTEGRATION-FIXES.md) for regression results.
+
 | Route | Success | Failure examples |
 | --- | --- | --- |
 | `POST /api/auth/register` | 201, `{ success: true, user }`, session cookie | 400 validation/role injection, 409 duplicate email, 429 throttle |

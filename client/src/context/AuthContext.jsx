@@ -76,8 +76,16 @@ export function AuthProvider({ children }) {
     setUser(null);
     setSessionError('');
   }, []);
-  const value = useMemo(() => ({ user, login, logout, register, loading, sessionError, retrySession }),
-    [user, login, logout, register, loading, sessionError, retrySession]);
+  const updateProfile = useCallback(async payload => {
+    generation.current++;
+    const response = await authService.updateProfile(payload);
+    generation.current++;
+    // A late save must never restore a logged-out user or replace another account.
+    setUser(current => current?._id === response.user._id ? response.user : current);
+    return response;
+  }, []);
+  const value = useMemo(() => ({ user, login, logout, register, updateProfile, loading, sessionError, retrySession }),
+    [user, login, logout, register, updateProfile, loading, sessionError, retrySession]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 export function useAuth() {

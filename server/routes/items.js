@@ -14,7 +14,8 @@ const image = z.string().trim().max(2000).refine(value => {
 });
 const fields = { title: text(150), description: text(4000), type: z.enum(['lost', 'found']), category: z.enum(categories),
   color: optionalText(80), brand: optionalText(100), location: text(200), dateLostOrFound: date, image };
-const creation = z.object(fields).strict();
+// Defaults belong only to creation: omitted PATCH fields must remain untouched.
+const creation = z.object({ ...fields, color: fields.color.default(''), brand: fields.brand.default(''), image: image.default('') }).strict();
 const update = z.object({ ...fields, status: z.enum(['open', 'resolved']) }).partial().strict().refine(value => Object.keys(value).length > 0);
 const positive = (fallback, max) => z.string().regex(/^[1-9]\d*$/).default(String(fallback)).transform(Number).refine(value => Number.isSafeInteger(value) && value <= max);
 const querySchema = z.object({ search: optionalText(100).optional(), location: optionalText(100).optional(),

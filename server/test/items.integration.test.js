@@ -91,4 +91,23 @@ test('item APIs write only to the isolated MongoDB on port 27018', { skip: proce
     assert.equal((await request(`/${foundId}`, 'DELETE', {}, users[2])).status, 204);
     assert.equal((await (await request(`?search=${suffix}`)).json()).pagination.total, 0);
   });
+  await t.test('omitted create fields default to empty strings; PATCH omissions preserve existing values', async () => {
+    const { color, brand, image, ...required } = payload;
+    for (const type of ['lost', 'found']) {
+      const response = await request('', 'POST', { ...required, type });
+      assert.equal(response.status, 201);
+      const { item } = await response.json();
+      for (const key of ['color', 'brand', 'image']) assert.equal(item[key], '');
+      assert.equal((await request(`/${item._id}`, 'PATCH', { color: 'Green', brand: 'Test brand', image: 'https://example.invalid/photo.jpg' })).status, 200);
+      const changed = await request(`/${item._id}`, 'PATCH', { title: 'Description-only update' });
+      assert.equal(changed.status, 200);
+      const updated = (await changed.json()).item;
+      assert.equal(updated.color, 'Green'); assert.equal(updated.brand, 'Test brand'); assert.equal(updated.image, 'https://example.invalid/photo.jpg');
+      await request(`/${item._id}`, 'DELETE', {});
+    }
+    // Each optional value remains validated when supplied, including null/objects.
+    for (const key of ['color', 'brand', 'image']) {
+      for (const value of [null, {}]) assert.equal((await request('', 'POST', { ...required, [key]: value })).status, 400);
+    }
+  });
 });

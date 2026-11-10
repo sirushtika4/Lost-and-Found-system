@@ -34,7 +34,8 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(response => response, error => {
   // Session restoration handles its own 401, so a stale check cannot invalidate a newer login.
-  if (error.response?.status === 401 && !/\/auth\/(login|register|me)$/.test(error.config?.url || '')) window.dispatchEvent(new Event('auth:expired'));
+  const sessionRestore = error.config?.method === 'get' && /\/auth\/me$/.test(error.config?.url || '');
+  if (error.response?.status === 401 && !sessionRestore && !/\/auth\/(login|register)$/.test(error.config?.url || '')) window.dispatchEvent(new Event('auth:expired'));
   return Promise.reject(error);
 });
 
